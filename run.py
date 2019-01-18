@@ -37,7 +37,7 @@ model=CIFARModel(
 	damping=1e-2)
 
 model.train(
-    num_steps=50*data.train.x.shape[0])
+    num_steps=data.train.x.shape[0])
 
 model.train(data.train.x)
 

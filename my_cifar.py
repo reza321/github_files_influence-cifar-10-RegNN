@@ -1,11 +1,3 @@
-## setup_cifar.py -- cifar data and model loading code
-##
-## Copyright (C) 2016, Nicholas Carlini <nicholas@carlini.com>.
-##
-## This program is licenced under the BSD 2-Clause licence,
-## contained in the LICENCE file in this directory.
-
-
 import tensorflow as tf
 import numpy as np
 import os
@@ -33,7 +25,9 @@ def load_batch(fpath):
     images = []
     for i in range(10000):
         arr = np.fromstring(f[i*size:(i+1)*size],dtype=np.uint8)
-        lab = np.identity(10)[arr[0]]
+        # lab = np.identity(10)[arr[0]]
+        lab = [arr[0]]        
+
         img = arr[1:].reshape((3,32,32)).transpose((1,2,0))
 
         labels.append(lab)
@@ -74,7 +68,6 @@ def load_cifar():
     # plt.show()
     # exit()
     VALIDATION_SIZE = 5000
-    
     validation_data = train_data[:VALIDATION_SIZE]
     validation_labels = train_labels[:VALIDATION_SIZE]
 
@@ -192,8 +185,9 @@ class CIFARModel(GenericNeuralNet):
 
 
     def get_all_params(self):
+        # names=[n.name for n in tf.get_default_graph().as_graph_def().node]
         all_params = []
-        for layer in ['conv1', 'conv2', 'conv3', 'conv4', 'dense1', 'dense2', 'dense3']:        
+        for layer in ['conv1', 'conv2', 'conv3', 'conv4', 'dense1', 'dense2','logits']:        
             for var_name in ['kernel', 'bias']:
                 temp_tensor = tf.get_default_graph().get_tensor_by_name("%s/%s:0" % (layer, var_name))            
                 all_params.append(temp_tensor)                

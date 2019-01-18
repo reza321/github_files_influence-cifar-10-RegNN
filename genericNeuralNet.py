@@ -23,8 +23,8 @@ from tensorflow.python.ops import array_ops
 from keras import backend as K
 from tensorflow.contrib.learn.python.learn.datasets import base
 
-from influence.hessians import hessian_vector_product
-from influence.dataset import DataSet
+from hessians import hessian_vector_product
+from dataset import DataSet
 
 
 def variable(name, shape, initializer):
@@ -125,10 +125,6 @@ class GenericNeuralNet(object):
 
 
 
-
-
-
-
         self.global_step = tf.Variable(0, name='global_step', trainable=False)
         self.learning_rate = tf.Variable(self.initial_learning_rate, name='learning_rate', trainable=False)
         #self.learning_rate_placeholder = tf.placeholder(tf.float32)
@@ -167,29 +163,34 @@ class GenericNeuralNet(object):
         init = tf.global_variables_initializer()        
         self.sess.run(init)
 
-        self.vec_to_list = self.get_vec_to_list_fn()
-        self.adversarial_loss, self.indiv_adversarial_loss = self.adversarial_loss(self.logits, self.labels_placeholder)
-        if self.adversarial_loss is not None:
-            self.grad_adversarial_loss_op = tf.gradients(self.adversarial_loss, self.params)
+        # self.vec_to_list = self.get_vec_to_list_fn()
+        # self.adversarial_loss, self.indiv_adversarial_loss = self.adversarial_loss(self.logits, self.labels_placeholder)
+        # if self.adversarial_loss is not None:
+        #     self.grad_adversarial_loss_op = tf.gradients(self.adversarial_loss, self.params)
         
 
-    def get_vec_to_list_fn(self):
-        params_val = self.sess.run(self.params)
-        self.num_params = len(np.concatenate(params_val))        
-        print('Total number of parameters: %s' % self.num_params)
+    # def get_vec_to_list_fn(self):
+    #     params_val = self.sess.run(self.params)
+        
+    #     print(params_val)        
+    #     print(np.shape(params_val))
+    #     print(len(params_val[0]))
+    #     exit()
+    #     self.num_params = len(np.concatenate(params_val))        
+    #     print('Total number of parameters: %s' % self.num_params)
 
 
-        def vec_to_list(v):
-            return_list = []
-            cur_pos = 0
-            for p in params_val:
-                return_list.append(v[cur_pos : cur_pos+len(p)])
-                cur_pos += len(p)
+    #     def vec_to_list(v):
+    #         return_list = []
+    #         cur_pos = 0
+    #         for p in params_val:
+    #             return_list.append(v[cur_pos : cur_pos+len(p)])
+    #             cur_pos += len(p)
 
-            assert cur_pos == len(v)
-            return return_list
+    #         assert cur_pos == len(v)
+    #         return return_list
 
-        return vec_to_list
+    #     return vec_to_list
 
 
     def reset_datasets(self):
@@ -362,16 +363,16 @@ class GenericNeuralNet(object):
             start_time = time.time()
 
             # if step < iter_to_switch_to_batch:                
-            #     feed_dict = self.fill_feed_dict_with_batch(self.data_sets.train)
-            #     _, loss_val = sess.run([self.train_op, self.total_loss], feed_dict=feed_dict)
+            feed_dict = self.fill_feed_dict_with_batch(self.data_sets.train)
+            _, loss_val = sess.run([self.train_op, self.total_loss], feed_dict=feed_dict)
                 
             # elif step < iter_to_switch_to_sgd:
             #     feed_dict = self.all_train_feed_dict          
             #     _, loss_val = sess.run([self.train_op, self.total_loss], feed_dict=feed_dict)
 
             # else: 
-            feed_dict = self.all_train_feed_dict          
-            _, loss_val = sess.run([self.train_sgd_op, self.total_loss], feed_dict=feed_dict)          
+            # feed_dict = self.all_train_feed_dict          
+            # _, loss_val = sess.run([self.train_sgd_op, self.total_loss], feed_dict=feed_dict)          
 
             duration = time.time() - start_time
 
@@ -431,6 +432,17 @@ class GenericNeuralNet(object):
 
         labels = tf.one_hot(labels, depth=self.num_classes)
         # correct_prob = tf.reduce_sum(tf.multiply(labels, tf.nn.softmax(logits)), reduction_indices=1)
+
+        # init = tf.global_variables_initializer()        
+        # self.sess.run(init)
+        # feed_dict1 = {
+        #     self.input_placeholder: self.data_sets.train.x[0].reshape(1,-1),
+        #     self.labels_placeholder: self.data_sets.train.labels[0],            
+        # }
+        # b=self.sess.run(labels,feed_dict=feed_dict1)
+        # print(b)
+        # labels=labels.astype(tf.float32)
+
         cross_entropy = - tf.reduce_sum(tf.multiply(labels, tf.nn.log_softmax(logits)), reduction_indices=1)
 
         indiv_loss_no_reg = cross_entropy
